@@ -19,6 +19,7 @@
 
 #include "itkImageBase.h"
 #include "itkImageRegion.h"
+#include "itkCudaImportImageContainer.h"
 #include "itkImportImageContainer.h"
 #include "itkDefaultPixelAccessor.h"
 #include "itkDefaultPixelAccessorFunctor.h"
@@ -125,7 +126,8 @@ public:
   itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
 
   /** Container used to store pixels in the image. */
-  typedef ImportImageContainer<unsigned long, PixelType> PixelContainer;
+  typedef CudaImportImageContainer<unsigned long, PixelType> PixelContainer;
+  typedef ImportImageContainer<unsigned long, PixelType> SuperPixelContainer;
 
   /** Index typedef support. An index is used to access pixel values. */
   typedef typename Superclass::IndexType       IndexType;
@@ -162,6 +164,7 @@ public:
   /** Allocate the image memory. The size of the image must
    * already be set, e.g. by calling SetRegions(). */
   void Allocate();
+  void AllocateGPU();
 
   /** Convenience methods to set the LargestPossibleRegion,
    *  BufferedRegion and RequestedRegion. Allocate must still be called.
@@ -240,6 +243,14 @@ public:
     { return m_Buffer ? m_Buffer->GetBufferPointer() : 0; }
   const TPixel *GetBufferPointer() const
     { return m_Buffer ? m_Buffer->GetBufferPointer() : 0; }
+
+  /** Return a pointer to the beginning of the buffer on the GPU.  This is used by
+   * the image iterator class. */
+  TPixel *GetDevicePointer()
+    { return m_Buffer ? m_Buffer->GetDevicePointer() : 0; }
+  TPixel *GetDevicePointer() const
+    { return m_Buffer ? m_Buffer->GetDevicePointer() : 0; }
+
 
   /** Return a pointer to the container. */
   PixelContainer* GetPixelContainer()

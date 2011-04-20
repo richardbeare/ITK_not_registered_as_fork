@@ -54,6 +54,20 @@ Image<TPixel, VImageDimension>
 template<class TPixel, unsigned int VImageDimension>
 void 
 Image<TPixel, VImageDimension>
+::AllocateGPU()
+{
+  unsigned long num;
+
+  this->ComputeOffsetTable();
+  num = this->GetOffsetTable()[VImageDimension];
+  
+  m_Buffer->ReserveGPU(num);
+}
+
+
+template<class TPixel, unsigned int VImageDimension>
+void 
+Image<TPixel, VImageDimension>
 ::Initialize()
 {
   //

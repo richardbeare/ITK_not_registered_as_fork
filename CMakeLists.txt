@@ -795,6 +795,8 @@ INCLUDE_DIRECTORIES(
   ${ITK_INCLUDE_DIRS_BUILD_TREE}
   ${ITK_INCLUDE_DIRS_BUILD_TREE_CXX}
   ${ITK_INCLUDE_DIRS_SYSTEM}
+  ${CUDA_TOOLKIT_INCLUDE}
+  ${CUDA_SDK_INCLUDE_PATH}
 )
 
 #-----------------------------------------------------------------------------
@@ -895,3 +897,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDFOREACH(COMP_OPTION)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/cuda" ${CMAKE_MODULE_PATH})
+find_package(CUDA QUIET REQUIRED)                             
+
+
+if(NOT CUDA_FOUND)                                            
+   message("CUDA could not be located on your system.")       
+endif(NOT CUDA_FOUND)                                         
