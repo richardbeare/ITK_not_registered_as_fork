@@ -1,20 +1,17 @@
 /*=========================================================================
 
-Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkImportImageContainer.txx,v $
-Language:  C++
-Date:      $Date: 2009-04-05 19:10:47 $
-Version:   $Revision: 1.23 $
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    itkCudaImportImageContainer.h
+  Language:  C++
+  Date:      $Date$
+  Version:   $Revision$
 
-Copyright (c) Insight Software Consortium. All rights reserved.
-See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-Portions of this code are covered under the VTK copyright.
-See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.
-
-This software is distributed WITHOUT ANY WARRANTY; without even 
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-PURPOSE.  See the above copyright notices for more information.
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 #ifndef __itkCudaImportImageContainer_txx
@@ -34,8 +31,8 @@ namespace itk
       CudaImportImageContainer<TElementIdentifier , TElement>
       ::CudaImportImageContainer()
       {
-         serial = (int)(rand()/10000000); 
-         ImageLocation = CPU;
+	//serial = (int)(rand()/10000000);
+         m_ImageLocation = CPU;
          m_DevicePointer = 0;
          m_ImportPointer = 0;
          m_ContainerManageMemory = true;
@@ -142,7 +139,7 @@ namespace itk
             m_ContainerManageMemory = true;
             this->Modified();
          }
-	 ImageLocation = GPU;
+	 m_ImageLocation = GPU;
          //std::cout << serial << " Reserved CPU " << std::endl;
       }
 
@@ -229,7 +226,7 @@ namespace itk
          //AllocateGPU();
 
          this->Modified();
-         ImageLocation = CPU;
+         m_ImageLocation = CPU;
       }
 
    template <typename TElementIdentifier, typename TElement>
@@ -244,7 +241,7 @@ namespace itk
          m_Capacity = num;
          m_Size = num;
          this->Modified();
-         ImageLocation = GPU;
+         m_ImageLocation = GPU;
       }
 
    template <typename TElementIdentifier, typename TElement>
@@ -340,7 +337,7 @@ namespace itk
 
          os << indent << "Pointer: " << static_cast<void *>(m_ImportPointer) << std::endl;
          os << indent << "DevPointer: " << static_cast<void *>(m_DevicePointer) << std::endl;
-	 os << indent << "Image location: " << ImageLocation << std::endl;
+	 os << indent << "Image location: " << m_ImageLocation << std::endl;
          os << indent << "Container manages memory: "
             << (m_ContainerManageMemory ? "true" : "false") << std::endl;
          os << indent << "Container manages device memory: "
@@ -359,7 +356,7 @@ namespace itk
          cudaMemcpy(m_DevicePointer, m_ImportPointer,
                sizeof(TElement)*m_Size, cudaMemcpyHostToDevice);
 
-         ImageLocation = GPU;
+         m_ImageLocation = GPU;
       }
 
    template <typename TElementIdentifier, typename TElement>
@@ -367,11 +364,11 @@ namespace itk
       CudaImportImageContainer< TElementIdentifier , TElement >
       ::CopyToCPU()
       {
-	 AllocateCPU();
-         cudaMemcpy(m_ImportPointer, m_DevicePointer,
-               sizeof(TElement)*m_Size, cudaMemcpyDeviceToHost);
+	AllocateCPU();
+	cudaMemcpy(m_ImportPointer, m_DevicePointer,
+		   sizeof(TElement)*m_Size, cudaMemcpyDeviceToHost);
 
-         ImageLocation = CPU;
+         m_ImageLocation = CPU;
       }
 
    template <typename TElementIdentifier, typename TElement>

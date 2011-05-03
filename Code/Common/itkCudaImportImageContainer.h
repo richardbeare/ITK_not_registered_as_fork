@@ -67,25 +67,25 @@ namespace itk
          /** Get the pointer from which the image data is imported. */
          TElement *GetImportPointer() 
          { 
-            if (ImageLocation==GPU) { CopyToCPU(); ImageLocation=CPU; }
+            if (m_ImageLocation==GPU) { CopyToCPU(); m_ImageLocation=CPU; }
             return m_ImportPointer; 
          };
 
          TElement *GetImportPointer() const
          {
-            if (ImageLocation==GPU) { CopyToCPU(); }
+            if (m_ImageLocation==GPU) { CopyToCPU(); }
             return m_DevicePointer;
          };
 
          TElement *GetDevicePointer() 
          { 
-            if (ImageLocation==CPU) { CopyToGPU(); }
+            if (m_ImageLocation==CPU) { CopyToGPU(); }
             return m_DevicePointer;
          };
 
          // TElement *GetDevicePointer() const
 //          {
-//             if (ImageLocation==CPU) { CopyToGPU(); ImageLocation=BOTH; }
+//             if (m_ImageLocation==CPU) { CopyToGPU(); m_ImageLocation=BOTH; }
 //             return m_DevicePointer;
 //          };
 
@@ -108,14 +108,14 @@ namespace itk
          /** Index operator. This version can be an lvalue. */
          TElement & operator[](const ElementIdentifier id)
          { 
-            if (ImageLocation==GPU) { CopyToCPU(); }
+            if (m_ImageLocation==GPU) { CopyToCPU(); }
             return m_ImportPointer[id]; 
          }
 
          /** Index operator. This version can only be an rvalue */
          const TElement & operator[](const ElementIdentifier id) const
          { 
-	   if (ImageLocation==GPU) { CopyToCPU();}
+	   if (m_ImageLocation==GPU) { CopyToCPU();}
             return m_ImportPointer[id]; 
          }
 
@@ -123,7 +123,7 @@ namespace itk
           * the image iterator class. */
          TElement *GetBufferPointer()
          {
-	   if (ImageLocation == GPU) { CopyToCPU();}
+	   if (m_ImageLocation == GPU) { CopyToCPU();}
             return m_ImportPointer; 
          }
 
@@ -213,9 +213,9 @@ namespace itk
           * and m_Capacity members. It should typically be used only to override
           * AllocateElements and DeallocateManagedMemory. */
          void SetImportPointer(TElement *ptr)
-            { m_ImportPointer=ptr; ImageLocation=CPU; }
+            { m_ImportPointer=ptr; m_ImageLocation=CPU; }
          void SetDevicePointer(TElement *ptr)
-            { m_DevicePointer=ptr; ImageLocation=GPU; }
+            { m_DevicePointer=ptr; m_ImageLocation=GPU; }
 
       private:
          CudaImportImageContainer(const Self&); //purposely not implemented
@@ -239,7 +239,7 @@ namespace itk
             BOTH,
             CPU,
             GPU
-         } ImageLocation;
+         } m_ImageLocation;
    };
 
 } // end namespace itk
