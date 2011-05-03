@@ -79,7 +79,7 @@ TileImageFilter<TInputImage, TOutputImage>
         }
       OutputImageRegionType tempRegion(tempIndex, tempSize);
       tempImage->SetRegions(tempRegion);
-      tempImage->SetPixelContainer(const_cast<ImportImageContainer<unsigned long, InputPixelType> *>(this->GetInput(it.Get().m_ImageNumber)->GetPixelContainer()));
+      tempImage->SetPixelContainer(const_cast<CudaImportImageContainer<unsigned long, InputPixelType> *>(this->GetInput(it.Get().m_ImageNumber)->GetPixelContainer()));
       paste->SetSourceImage(tempImage);
       paste->SetDestinationIndex(it.Get().m_Region.GetIndex());
       paste->SetSourceRegion(tempRegion);
