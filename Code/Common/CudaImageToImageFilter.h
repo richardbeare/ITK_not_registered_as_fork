@@ -1,19 +1,4 @@
-/*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    CudaImageToImageFilter.h
-  Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
 #ifndef __itkCudaImageToImageFilter_h
 #define __itkCudaImageToImageFilter_h
 
@@ -25,9 +10,8 @@ namespace itk
 {
 
 /** \class CudaImageToImageFilter
-template <class TInputImage, class TOutputImage>
 **/
-
+template <class TInputImage, class TOutputImage>
 class ITK_EXPORT CudaImageToImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
@@ -45,6 +29,7 @@ public:
   typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
   typedef typename Superclass::OutputImagePixelType  OutputImagePixelType;
 
+  typedef typename TOutputImage::Pointer OutputImagePointer;
   /** Some convenient typedefs. */
   typedef TInputImage                             InputImageType;
   typedef typename InputImageType::Pointer        InputImagePointer;
@@ -72,16 +57,16 @@ private:
 
 // Define instantiation macro for this template.
 #define ITK_TEMPLATE_CudaImageToImageFilter(_, EXPORT, x, y) namespace itk { \
-  _(2(class EXPORT ImageToImageFilter< ITK_TEMPLATE_2 x >)) \
-  namespace Templates { typedef ImageToImageFilter< ITK_TEMPLATE_2 x > ImageToImageFilter##y; } \
+    _(2(class EXPORT ImageToImageFilter< ITK_TEMPLATE_2 x >))		\
+      namespace Templates { typedef ImageToImageFilter< ITK_TEMPLATE_2 x > ImageToImageFilter##y; } \
   }
 
 #if ITK_TEMPLATE_EXPLICIT
-# include "Templates/itkCudaImageToImageFilter+-.h"
+# include "Templates/CudaImageToImageFilter+-.h"
 #endif
 
 #if ITK_TEMPLATE_TXX
-# include "itkCudaImageToImageFilter.txx"
+# include "CudaImageToImageFilter.txx"
 #endif
 
 #endif

@@ -19,7 +19,7 @@
 =========================================================================*/
 #ifndef __itkCudaImageToImageFilter_txx
 #define __itkCudaImageToImageFilter_txx
-#include "itkCudaImageToImageFilter.h"
+#include "CudaImageToImageFilter.h"
 
 
 namespace itk
@@ -66,8 +66,13 @@ CudaImageToImageFilter<TInputImage,TOutputImage>
 
     if ( outputPtr )
       {
-      outputPtr->SetBufferedRegion( outputPtr->GetRequestedRegion() );
-      outputPtr->AllocateGPU();
+//       outputPtr->SetBufferedRegion( outputPtr->GetRequestedRegion() );
+//       outputPtr->AllocateGPU();
+      // may not be the best way of doing this. Casting loses the
+      // AllocateGPU method
+      OutputImagePointer op2 = this->GetOutput(i);
+      op2->SetBufferedRegion( outputPtr->GetRequestedRegion() );
+      op2->AllocateGPU();
       }
     }
 }

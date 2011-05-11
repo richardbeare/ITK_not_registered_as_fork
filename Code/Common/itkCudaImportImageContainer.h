@@ -9,8 +9,8 @@ Version:   $Revision: 1.24 $
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-This software is distributed WITHOUT ANY WARRANTY; without even 
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -26,7 +26,7 @@ PURPOSE.  See the above copyright notices for more information.
 namespace itk
 {
 
-   /** \class ImportImageContainer
+/** \class ImportImageContainer
     * Defines an itk::Image front-end to a standard C-array. This container
     * conforms to the ImageContainerInterface. This is a full-fleged Object,
     * so there is modification time, debug, and reference count information.
@@ -43,47 +43,47 @@ namespace itk
     * \ingroup IOFilters
     */
 
-   template <typename TElementIdentifier, typename TElement>
-      class CudaImportImageContainer:  
-         public ImportImageContainer <TElementIdentifier, TElement>
-   {
-      public:
-         /** Standard class typedefs. */
-         typedef CudaImportImageContainer  Self;
-         typedef ImportImageContainer<TElementIdentifier, TElement>      Superclass;
-         typedef SmartPointer<Self>        Pointer;
-         typedef SmartPointer<const Self>  ConstPointer;
+template <typename TElementIdentifier, typename TElement>
+class CudaImportImageContainer:
+    public ImportImageContainer <TElementIdentifier, TElement>
+{
+public:
+  /** Standard class typedefs. */
+  typedef CudaImportImageContainer  Self;
+  typedef ImportImageContainer<TElementIdentifier, TElement>      Superclass;
+  typedef SmartPointer<Self>        Pointer;
+  typedef SmartPointer<const Self>  ConstPointer;
 
-         /** Save the template parameters. */
-         typedef TElementIdentifier  ElementIdentifier;
-         typedef TElement            Element;
+  /** Save the template parameters. */
+  typedef TElementIdentifier  ElementIdentifier;
+  typedef TElement            Element;
 
-         /** Method for creation through the object factory. */
-         itkNewMacro(Self);
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-         /** Standard part of every itk Object. */
-         itkTypeMacro(CudaImportImageContainer, ImportImageContainer);
+  /** Standard part of every itk Object. */
+  itkTypeMacro(CudaImportImageContainer, ImportImageContainer);
 
-         /** Get the pointer from which the image data is imported. */
-         TElement *GetImportPointer() 
-         { 
-            if (m_ImageLocation==GPU) { CopyToCPU(); m_ImageLocation=CPU; }
-            return m_ImportPointer; 
-         };
+  /** Get the pointer from which the image data is imported. */
+  TElement *GetImportPointer()
+  {
+    if (m_ImageLocation==GPU) { CopyToCPU(); m_ImageLocation=CPU; }
+    return m_ImportPointer;
+  };
 
-         TElement *GetImportPointer() const
-         {
-            if (m_ImageLocation==GPU) { CopyToCPU(); }
-            return m_DevicePointer;
-         };
+  TElement *GetImportPointer() const
+  {
+    if (m_ImageLocation==GPU) { CopyToCPU(); }
+    return m_DevicePointer;
+  };
 
-         TElement *GetDevicePointer() 
-         { 
-            if (m_ImageLocation==CPU) { CopyToGPU(); }
-            return m_DevicePointer;
-         };
+  TElement *GetDevicePointer()
+  {
+    if (m_ImageLocation==CPU) { CopyToGPU(); }
+    return m_DevicePointer;
+  };
 
-         // TElement *GetDevicePointer() const
+  // TElement *GetDevicePointer() const
 //          {
 //             if (m_ImageLocation==CPU) { CopyToGPU(); m_ImageLocation=BOTH; }
 //             return m_DevicePointer;
@@ -94,48 +94,48 @@ namespace itk
 
 
 
-         /** Set the pointer from which the image data is imported.  "num" is
+  /** Set the pointer from which the image data is imported.  "num" is
           * the number of pixels in the block of memory. If
           * "LetContainerManageMemory" is false, then the application retains
           * the responsibility of freeing the memory for this image data.  If
           * "LetContainerManageMemory" is true, then this class will free the
           * memory when this object is destroyed. */
-         void SetImportPointer(TElement *ptr, TElementIdentifier num,
-               bool LetContainerManageMemory = false);
-         void SetDevicePointer(TElement *ptr, TElementIdentifier
-               num, bool LetContainerManageMemory = false);
+  void SetImportPointer(TElement *ptr, TElementIdentifier num,
+			bool LetContainerManageMemory = false);
+  void SetDevicePointer(TElement *ptr, TElementIdentifier
+			num, bool LetContainerManageMemory = false);
 
-         /** Index operator. This version can be an lvalue. */
-         TElement & operator[](const ElementIdentifier id)
-         { 
-            if (m_ImageLocation==GPU) { CopyToCPU(); }
-            return m_ImportPointer[id]; 
-         }
+  /** Index operator. This version can be an lvalue. */
+  TElement & operator[](const ElementIdentifier id)
+  {
+    if (m_ImageLocation==GPU) { CopyToCPU(); }
+    return m_ImportPointer[id];
+  }
 
-         /** Index operator. This version can only be an rvalue */
-         const TElement & operator[](const ElementIdentifier id) const
-         { 
-	   if (m_ImageLocation==GPU) { CopyToCPU();}
-            return m_ImportPointer[id]; 
-         }
+  /** Index operator. This version can only be an rvalue */
+  const TElement & operator[](const ElementIdentifier id) const
+  {
+    if (m_ImageLocation==GPU) { CopyToCPU();}
+    return m_ImportPointer[id];
+  }
 
-         /** Return a pointer to the beginning of the buffer.  This is used by
+  /** Return a pointer to the beginning of the buffer.  This is used by
           * the image iterator class. */
-         TElement *GetBufferPointer()
-         {
-	   if (m_ImageLocation == GPU) { CopyToCPU();}
-            return m_ImportPointer; 
-         }
+  TElement *GetBufferPointer()
+  {
+    if (m_ImageLocation == GPU) { CopyToCPU();}
+    return m_ImportPointer;
+  }
 
-         /** Get the capacity of the container. */
-         unsigned long Capacity(void) const
-         { return (unsigned long) m_Capacity; }
+  /** Get the capacity of the container. */
+  unsigned long Capacity(void) const
+  { return (unsigned long) m_Capacity; }
 
-         /** Get the number of elements currently stored in the container. */
-         unsigned long Size(void) const
-         { return (unsigned long) m_Size; }
+  /** Get the number of elements currently stored in the container. */
+  unsigned long Size(void) const
+  { return (unsigned long) m_Size; }
 
-         /** Tell the container to allocate enough memory to allow at least
+  /** Tell the container to allocate enough memory to allow at least
           * as many elements as the size given to be stored.  If new memory
           * needs to be allocated, the contents of the old buffer are copied
           * to the new area.  The old buffer is deleted if the original pointer
@@ -147,22 +147,22 @@ namespace itk
           * semantics that is kept for backward compatibility reasons.
           *
           * \sa SetImportPointer() */
-         void Reserve(ElementIdentifier num);
-         void ReserveGPU(ElementIdentifier num);
+  void Reserve(ElementIdentifier num);
+  void ReserveGPU(ElementIdentifier num);
 
-         /** Tell the container to try to minimize its memory usage for
+  /** Tell the container to try to minimize its memory usage for
           * storage of the current number of elements.  If new memory is
           * allocated, the contents of old buffer are copied to the new area.
           * The previous buffer is deleted if the original pointer was in
                 * using "LetContainerManageMemory"=true.  The new buffer's memory
                 * management will be handled by the container from that point on. */
-               void Squeeze(void);
+  void Squeeze(void);
 
-         /** Tell the container to release any of its allocated memory. */
-         void Initialize(void);
+  /** Tell the container to release any of its allocated memory. */
+  void Initialize(void);
 
 
-         /** These methods allow to define whether upon destruction of this class
+  /** These methods allow to define whether upon destruction of this class
           *  the memory buffer should be released or not.  Setting it to true
           *  (or ON) makes that this class will take care of memory release.
           *  Setting it to false (or OFF) will prevent the destructor from
@@ -171,84 +171,84 @@ namespace itk
           *  Note that the normal logic of this class set the value of the boolean
           *  flag. This may override your setting if you call this methods prematurely.
           *  \warning Improper use of these methods will result in memory leaks */
-         itkSetMacro(ContainerManageMemory,bool);
-         itkGetConstMacro(ContainerManageMemory,bool);
-         itkBooleanMacro(ContainerManageMemory);
-         itkSetMacro(ContainerManageDevice,bool);
-         itkGetConstMacro(ContainerManageDevice,bool);
-         itkBooleanMacro(ContainerManageDevice);
+  itkSetMacro(ContainerManageMemory,bool);
+  itkGetConstMacro(ContainerManageMemory,bool);
+  itkBooleanMacro(ContainerManageMemory);
+  itkSetMacro(ContainerManageDevice,bool);
+  itkGetConstMacro(ContainerManageDevice,bool);
+  itkBooleanMacro(ContainerManageDevice);
 
-      protected:
-         CudaImportImageContainer();
-         virtual ~CudaImportImageContainer();
+protected:
+  CudaImportImageContainer();
+  virtual ~CudaImportImageContainer();
 
-         /** PrintSelf routine. Normally this is a protected internal method. It is
+  /** PrintSelf routine. Normally this is a protected internal method. It is
           * made public here so that Image can call this method.  Users should not
           * call this method but should call Print() instead. */
-         void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
-         virtual TElement* AllocateElements(ElementIdentifier size) const;
-         virtual TElement* AllocateGPUElements(ElementIdentifier size) const;
-         virtual void DeallocateManagedMemory();
+  virtual TElement* AllocateElements(ElementIdentifier size) const;
+  virtual TElement* AllocateGPUElements(ElementIdentifier size) const;
+  virtual void DeallocateManagedMemory();
 
-         /* Set the m_Size member that represents the number of elements
+  /* Set the m_Size member that represents the number of elements
           * currently stored in the container. Use this function with great
           * care since it only changes the m_Size member and not the actual size
           * of the import pointer m_ImportPointer. It should typically
           * be used only to override AllocateElements and
           * DeallocateManagedMemory. */
-         itkSetMacro(Size,TElementIdentifier);
+  itkSetMacro(Size,TElementIdentifier);
 
-         /* Set the m_Capacity member that represents the capacity of
+  /* Set the m_Capacity member that represents the capacity of
           * the current container. Use this function with great care
           * since it only changes the m_Capacity member and not the actual
           * capacity of the import pointer m_ImportPointer. It should typically
           * be used only to override AllocateElements and
           * DeallocateManagedMemory. */
-         itkSetMacro(Capacity,TElementIdentifier);
+  itkSetMacro(Capacity,TElementIdentifier);
 
 
-         /* Set the m_ImportPointer member. Use this function with great care
+  /* Set the m_ImportPointer member. Use this function with great care
           * since it only changes the m_ImportPointer member but not the m_Size
           * and m_Capacity members. It should typically be used only to override
           * AllocateElements and DeallocateManagedMemory. */
-         void SetImportPointer(TElement *ptr)
-            { m_ImportPointer=ptr; m_ImageLocation=CPU; }
-         void SetDevicePointer(TElement *ptr)
-            { m_DevicePointer=ptr; m_ImageLocation=GPU; }
+  void SetImportPointer(TElement *ptr)
+  { m_ImportPointer=ptr; m_ImageLocation=CPU; }
+  void SetDevicePointer(TElement *ptr)
+  { m_DevicePointer=ptr; m_ImageLocation=GPU; }
 
-      private:
-         CudaImportImageContainer(const Self&); //purposely not implemented
-         void operator=(const Self&); //purposely not implemented
+private:
+  CudaImportImageContainer(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
 
-     void CopyToGPU(); // const;
-     void CopyToCPU(); //const;
-     void AllocateGPU(); // const;
-         void AllocateCPU();
+  void CopyToGPU() const;
+  void CopyToCPU() const;
+  void AllocateGPU() const;
+  void AllocateCPU() const;
 
-         TElement            *m_ImportPointer;
-         TElement            *m_DevicePointer;
-         TElementIdentifier   m_Size;
-         TElementIdentifier   m_Capacity;
-         bool                 m_ContainerManageMemory;
-         bool                 m_ContainerManageDevice;
+  mutable TElement    *m_ImportPointer;
+  mutable TElement            *m_DevicePointer;
+  TElementIdentifier   m_Size;
+  TElementIdentifier   m_Capacity;
+  bool                 m_ContainerManageMemory;
+  bool                 m_ContainerManageDevice;
 
-         int                  serial;
+  int                  serial;
 
-         mutable enum memoryStatus{
-            BOTH,
-            CPU,
-            GPU
-         } m_ImageLocation;
-   };
+  mutable enum memoryStatus{
+    BOTH,
+    CPU,
+    GPU
+  } m_ImageLocation;
+};
 
 } // end namespace itk
 
 // Define instantiation macro for this template.
 #define ITK_TEMPLATE_CudaImportImageContainer(_, EXPORT, x, y) namespace itk { \
-   _(2(class EXPORT CudaImportImageContainer< ITK_TEMPLATE_2 x >)) \
-   namespace Templates { typedef CudaImportImageContainer<ITK_TEMPLATE_2 x > CudaImportImageContainer##y; } \
-}
+    _(2(class EXPORT CudaImportImageContainer< ITK_TEMPLATE_2 x >))	\
+      namespace Templates { typedef CudaImportImageContainer<ITK_TEMPLATE_2 x > CudaImportImageContainer##y; } \
+  }
 
 #if ITK_TEMPLATE_EXPLICIT
 # include "Templates/itkCudaImportImageContainer+-.h"
