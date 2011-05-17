@@ -68,6 +68,9 @@ void
 InPlaceImageFilter<TInputImage, TOutputImage>
 ::AllocateOutputs()
 {
+  // trigger a copy if the previous filter was GPU enabled.
+  this->GetInput()->GetBufferPointer();
+
   // if told to run in place and the types support it, 
   if (this->GetInPlace() && this->CanRunInPlace())
     {
@@ -78,6 +81,7 @@ InPlaceImageFilter<TInputImage, TOutputImage>
       = dynamic_cast<TOutputImage *>(const_cast<TInputImage *>(this->GetInput()));
     if (inputAsOutput)
       {
+      // trigger copy from GPU
       this->GraftOutput( inputAsOutput );
       }
     else

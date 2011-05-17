@@ -32,7 +32,7 @@ CudaImportImageContainer<TElementIdentifier , TElement>
 ::CudaImportImageContainer()
 {
   //serial = (int)(rand()/10000000);
-  m_ImageLocation = CPU;
+  m_ImageLocation = UNKNOWN;
   m_DevicePointer = 0;
   m_ImportPointer = 0;
   m_ContainerManageMemory = true;
@@ -93,6 +93,7 @@ CudaImportImageContainer< TElementIdentifier , TElement >
     m_ContainerManageMemory = true;
     this->Modified();
     }
+  m_ImageLocation = CPU;
   //std::cout << serial << " Reserved CPU " << std::endl;
 }
 
@@ -289,6 +290,7 @@ TElement* CudaImportImageContainer< TElementIdentifier , TElement >
     void * m_Tmp;
     cudaMalloc( &m_Tmp, sizeof(TElement)*size);
     data = (TElement *)m_Tmp;
+    m_ImageLocation = GPU;
     }
   catch(...)
     {
@@ -367,7 +369,6 @@ CudaImportImageContainer< TElementIdentifier , TElement >
   AllocateCPU();
   cudaMemcpy(m_ImportPointer, m_DevicePointer,
 	     sizeof(TElement)*m_Size, cudaMemcpyDeviceToHost);
-
   m_ImageLocation = CPU;
 }
 

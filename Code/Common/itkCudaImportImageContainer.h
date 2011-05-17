@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkImportImageContainer.h,v $
+Module:    $RCSfile: itkCudaImportImageContainer.h,v $
 Language:  C++
 Date:      $Date: 2009-04-25 12:24:09 $
 Version:   $Revision: 1.24 $
@@ -67,14 +67,14 @@ public:
   /** Get the pointer from which the image data is imported. */
   TElement *GetImportPointer()
   {
-    if (m_ImageLocation==GPU) { CopyToCPU(); m_ImageLocation=CPU; }
+    if (m_ImageLocation==GPU) { CopyToCPU(); }
     return m_ImportPointer;
   };
 
   TElement *GetImportPointer() const
   {
-    if (m_ImageLocation==GPU) { CopyToCPU(); }
-    return m_DevicePointer;
+    if (m_ImageLocation==GPU) { CopyToCPU();}
+    return m_ImportPointer;
   };
 
   TElement *GetDevicePointer()
@@ -123,7 +123,10 @@ public:
           * the image iterator class. */
   TElement *GetBufferPointer()
   {
-    if (m_ImageLocation == GPU) { CopyToCPU();}
+    if (m_ImageLocation == GPU)
+      {
+      CopyToCPU();
+      }
     return m_ImportPointer;
   }
 
@@ -236,6 +239,7 @@ private:
   int                  serial;
 
   mutable enum memoryStatus{
+    UNKNOWN,
     BOTH,
     CPU,
     GPU
