@@ -63,6 +63,21 @@ HistogramMatchingImageFilter<TInputImage, TOutputImage, THistogramMeasurement>::
   os << indent << "ThresholdAtMeanIntensity: ";
   os << m_ThresholdAtMeanIntensity << std::endl;
 
+  os << indent << "ThresholdSourceManual: ";
+  os << m_ThresholdSourceManual << std::endl;
+  if (m_ThresholdSourceManual)
+  {
+    os << indent << "Manual source threshold: ";
+    os << m_SourceThreshold << std::endl;
+  }
+  os << indent << "ThresholdReferenceManual: ";
+  os << m_ThresholdReferenceManual << std::endl;
+  if (m_ThresholdReferenceManual)
+  {
+    os << indent << "Manual reference threshold: ";
+    os << m_ReferenceThreshold << std::endl;
+  }
+
   os << indent << "Source histogram: ";
   os << m_SourceHistogram.GetPointer() << std::endl;
   os << indent << "Reference histogram: ";
@@ -150,9 +165,14 @@ HistogramMatchingImageFilter<TInputImage, TOutputImage, THistogramMeasurement>::
       itkExceptionMacro(<< "ERROR: ReferenceImage required when GenerateReferenceHistogramFromImage is true.\n")
     }
     this->ComputeMinMaxMean(reference, m_ReferenceMinValue, m_ReferenceMaxValue, referenceMeanValue);
+    m_ReferenceMeanValue = referenceMeanValue;
     if (m_ThresholdAtMeanIntensity)
     {
       referenceIntensityThreshold = static_cast<InputPixelType>(referenceMeanValue);
+    }
+    else if (m_ThresholdReferenceManual)
+    {
+      referenceIntensityThreshold = static_cast<InputPixelType>(m_ReferenceThreshold);
     }
     else
     {
@@ -187,7 +207,7 @@ HistogramMatchingImageFilter<TInputImage, TOutputImage, THistogramMeasurement>::
     m_ReferenceMaxValue =
       allReferenceMaxsFirstDimension.at(allReferenceMaxsFirstDimension.size() - 1); // last element of Maxes
 
-    if (m_ThresholdAtMeanIntensity)
+    if (m_ThresholdAtMeanIntensity || m_ThresholdReferenceManual)
     {
       referenceIntensityThreshold = allReferenceMinsFirstDimension.at(0); // First element of mins array in histogram
     }
@@ -200,10 +220,15 @@ HistogramMatchingImageFilter<TInputImage, TOutputImage, THistogramMeasurement>::
   InputImageConstPointer source = this->GetSourceImage();
 
   this->ComputeMinMaxMean(source, m_SourceMinValue, m_SourceMaxValue, sourceMeanValue);
+  m_SourceMeanValue = sourceMeanValue;
 
   if (m_ThresholdAtMeanIntensity)
   {
     sourceIntensityThreshold = static_cast<InputPixelType>(sourceMeanValue);
+  }
+  else if (m_ThresholdReferenceManual)
+  {
+    sourceIntensityThreshold = static_cast<InputPixelType>(m_SourceThreshold);
   }
   else
   {
@@ -289,6 +314,10 @@ HistogramMatchingImageFilter<TInputImage, TOutputImage, THistogramMeasurement>::
   if (m_ThresholdAtMeanIntensity)
   {
     outputIntensityThreshold = static_cast<OutputPixelType>(outputMeanValue);
+  }
+  else if (m_ThresholdReferenceManual)
+  {
+    outputIntensityThreshold = static_cast<OutputPixelType>(m_ReferenceThreshold);
   }
   else
   {

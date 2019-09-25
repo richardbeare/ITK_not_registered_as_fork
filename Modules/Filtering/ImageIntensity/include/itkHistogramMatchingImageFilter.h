@@ -143,9 +143,65 @@ public:
    * than the mean source (reference) intensity is used in
    * the histogram matching. If false, all pixels are
    * used. */
-  itkSetMacro(ThresholdAtMeanIntensity, bool);
   itkGetConstMacro(ThresholdAtMeanIntensity, bool);
-  itkBooleanMacro(ThresholdAtMeanIntensity);
+
+  virtual void
+  SetThresholdAtMeanIntensity(bool A)
+  {
+    this->Modified();
+    m_ThresholdAtMeanIntensity = A;
+    if (A)
+    {
+      this->SetThresholdSourceManual(false);
+      this->SetThresholdReferenceManual(false);
+    }
+  }
+
+  virtual void
+  ThresholdAtMeanIntensityOn()
+  {
+    this->SetThresholdAtMeanIntensity(true);
+  }
+
+  virtual void
+  ThresholdAtMeanIntensityOff()
+  {
+    this->SetThresholdAtMeanIntensity(false);
+  }
+
+  virtual void
+  SetSourceThreshold(InputPixelType V)
+  {
+    this->Modified();
+    this->SetThresholdSourceManual(true);
+    this->SetThresholdAtMeanIntensity(false);
+    m_SourceThreshold = V;
+  }
+
+  virtual void
+  SetReferenceThreshold(InputPixelType V)
+  {
+    this->Modified();
+    this->SetThresholdReferenceManual(true);
+    this->SetThresholdAtMeanIntensity(false);
+    m_ReferenceThreshold = V;
+  }
+
+
+  itkGetConstMacro(SourceThreshold, InputPixelType);
+  itkGetConstMacro(ReferenceThreshold, InputPixelType);
+
+
+  /** Set/Get flags for using user supplied thresholds
+   * These are set automatically if the set method for the
+   * value is called */
+  itkSetMacro(ThresholdSourceManual, bool);
+  itkGetConstMacro(ThresholdSourceManual, bool);
+  itkBooleanMacro(ThresholdSourceManual);
+
+  itkSetMacro(ThresholdReferenceManual, bool);
+  itkGetConstMacro(ThresholdReferenceManual, bool);
+  itkBooleanMacro(ThresholdReferenceManual);
 
   /** Set/Get if the reference histogram is regenerated from
    * the supplied ReferenceImage (true) or supplied directly
@@ -159,6 +215,11 @@ public:
   itkSetMacro(GenerateReferenceHistogramFromImage, bool);
   itkGetConstMacro(GenerateReferenceHistogramFromImage, bool);
   itkBooleanMacro(GenerateReferenceHistogramFromImage);
+
+
+  /** Get the mean values, mostly for testing purposes */
+  itkGetConstMacro(SourceMeanValue, THistogramMeasurement);
+  itkGetConstMacro(ReferenceMeanValue, THistogramMeasurement);
 
   /** This filter requires all of the input to be in the buffer. */
   void
@@ -233,6 +294,8 @@ private:
   SizeValueType m_NumberOfHistogramLevels{ 256 };
   SizeValueType m_NumberOfMatchPoints{ 1 };
   bool          m_ThresholdAtMeanIntensity{ true };
+  bool          m_ThresholdSourceManual{ false };
+  bool          m_ThresholdReferenceManual{ false };
 
   THistogramMeasurement m_SourceMinValue;
   THistogramMeasurement m_SourceMaxValue;
@@ -240,8 +303,15 @@ private:
   THistogramMeasurement m_ReferenceMinValue;
   THistogramMeasurement m_ReferenceMaxValue;
 
+  THistogramMeasurement m_SourceMeanValue;
+  THistogramMeasurement m_ReferenceMeanValue;
+
   HistogramPointer m_SourceHistogram;
   HistogramPointer m_OutputHistogram;
+
+  InputPixelType m_SourceThreshold;
+  InputPixelType m_ReferenceThreshold;
+
 
   using TableType = vnl_matrix<double>;
   TableType m_QuantileTable;

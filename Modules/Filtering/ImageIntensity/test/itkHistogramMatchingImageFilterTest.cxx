@@ -203,7 +203,9 @@ itkHistogramMatchingImageFilterTest()
 
   bool passed = true;
   using FilterType = itk::HistogramMatchingImageFilter<ImageType, ImageType>;
-  typename FilterType::HistogramType::ConstPointer refHistogram = nullptr;
+  typename FilterType::HistogramType::ConstPointer    refHistogram = nullptr;
+  typename FilterType::HistogramType::MeasurementType srcMean = 0;
+  typename FilterType::HistogramType::MeasurementType refMean = 0;
 
   // Test with historical reference image input, and then capture the histogram as cached
   // value for other tests
@@ -256,6 +258,24 @@ itkHistogramMatchingImageFilterTest()
       // Get referenceHistogram for other tests
       refHistogram = filterWithReferenceImage->GetReferenceHistogram();
       PrintHistogramInfo(refHistogram);
+      // Get the source and reference mean for other tests
+      refMean = filterWithReferenceImage->GetReferenceMeanValue();
+      srcMean = filterWithReferenceImage->GetSourceMeanValue();
+    }
+    {
+      // repeat test with manually supplied values
+      filterWithReferenceImage->ThresholdAtMeanIntensityOff();
+      filterWithReferenceImage->SetSourceThreshold(srcMean);
+      filterWithReferenceImage->SetReferenceThreshold(refMean);
+
+      filterWithReferenceImage->Update();
+      filterWithReferenceImage->Print(std::cout);
+
+      // Walk the output and compare with reference
+      Iterator outIter(filterWithReferenceImage->GetOutput(), region);
+      std::cout << "filterWithReferenceImage - Image Test -- START" << std::endl;
+      passed &= CompareImages(refIter, outIter);
+      std::cout << "filterWithReferenceImage - Image Test -- FINISHED" << std::endl;
     }
   }
   std::cout << "===================================================================================" << std::endl;
@@ -285,6 +305,34 @@ itkHistogramMatchingImageFilterTest()
     std::cout << "filterWithSameSizeHistogram - Image Test -- START" << std::endl;
     passed &= CompareImages(refIter, outIter);
     std::cout << "filterWithSameSizeHistogram - Image Test -- FINISHED" << std::endl;
+  }
+  {
+    // Test SourceHistogram same size (50) as ReferenceHistogram
+    // and manually supplied mean value
+    typename FilterType::Pointer filterWithSameSizeHistogram = FilterType::New();
+
+    filterWithSameSizeHistogram->SetReferenceHistogram(refHistogram);
+    filterWithSameSizeHistogram->GenerateReferenceHistogramFromImageOff();
+    filterWithSameSizeHistogram->SetSourceImage(source);
+    filterWithSameSizeHistogram->SetNumberOfHistogramLevels(50);
+    filterWithSameSizeHistogram->SetNumberOfMatchPoints(8);
+
+    ShowProgressObject                                    progressWatchHistogramReference(filterWithSameSizeHistogram);
+    itk::SimpleMemberCommand<ShowProgressObject>::Pointer commandHistogramReference;
+    commandHistogramReference = itk::SimpleMemberCommand<ShowProgressObject>::New();
+    commandHistogramReference->SetCallbackFunction(&progressWatchHistogramReference, &ShowProgressObject::ShowProgress);
+    filterWithSameSizeHistogram->AddObserver(itk::ProgressEvent(), commandHistogramReference);
+    filterWithSameSizeHistogram->SetSourceThreshold(srcMean);
+    filterWithSameSizeHistogram->SetReferenceThreshold(refMean);
+
+    filterWithSameSizeHistogram->Update();
+    filterWithSameSizeHistogram->Print(std::cout);
+
+    // Walk the output and compare with reference
+    Iterator outIter(filterWithSameSizeHistogram->GetOutput(), region);
+    std::cout << "filterWithSameSizeHistogram, manual threshold - Image Test -- START" << std::endl;
+    passed &= CompareImages(refIter, outIter);
+    std::cout << "filterWithSameSizeHistogram, manual threshold- Image Test -- FINISHED" << std::endl;
   }
   // Test SourceHistogram smaller than (31) ReferenceHistogram
   {
