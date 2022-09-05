@@ -97,11 +97,9 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
 
   fit = faceList.begin();
 
-  m_SortPixels = new GreyAndPos[buffsize];
+  m_SortPixels = new OffsetValueType[buffsize];
   m_Parent = new OffsetValueType[buffsize];
-#ifndef PAMI
-  m_Processed = new bool[buffsize];
-#endif
+
   // This is a bit ugly, but I can't see an easy way around
   m_Raw = new InputPixelType[buffsize];
   m_AuxData = new AttributeType[buffsize];
@@ -114,20 +112,19 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
 
   for (RegIt.GoToBegin(); !RegIt.IsAtEnd(); ++RegIt, ++pos)
   {
-    GreyAndPos P;
-    P.Val = RegIt.Get();
-    P.Pos = pos;
-    m_SortPixels[pos] = P;
-    m_Raw[pos] = P.Val;
-#ifndef PAMI
-    m_Processed[pos] = false;
-#endif
+    // GreyAndPos P;
+    // P.Val = RegIt.Get();
+    // P.Pos = pos;
+    m_SortPixels[pos] = pos;
+    m_Raw[pos] = RegIt.Get();
+
     m_Parent[pos] = INACTIVE;
     m_AuxData[pos] = -1; // invalid value;
     progress.CompletedPixel();
   }
   progress.CompletedPixel();
-  std::sort(&(m_SortPixels[0]), &(m_SortPixels[buffsize - 1]), ComparePixStruct());
+  m_CompareOffset.buf = m_Raw;
+  std::stable_sort(&(m_SortPixels[0]), &(m_SortPixels[buffsize - 1]), m_CompareOffset);
   progress.CompletedPixel();
 
   // set up the offset vector
@@ -137,14 +134,13 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
 
   // the core algorithm
   // process first pixel
-#ifdef PAMI
-  MakeSet(m_SortPixels[0].Pos);
+  MakeSet(m_SortPixels[0]);
   // m_Processed[0] = true;
   for (SizeValueType k = 1; k < buffsize; ++k)
   {
-    OffsetValueType ThisPos = m_SortPixels[k].Pos;
+    OffsetValueType ThisPos = m_SortPixels[k];
     IndexType       ThisWhere = input->ComputeIndex(ThisPos);
-    InputPixelType  ThisPix = m_SortPixels[k].Val;
+    InputPixelType  ThisPix = m_Raw[ThisPos];
     MakeSet(ThisPos);
     // Some optimization of bounds check
     if (fit->IsInside(ThisWhere))
@@ -178,65 +174,6 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
     }
     progress.CompletedPixel();
   }
-#else
-  MakeSet(m_SortPixels[0].Pos);
-  m_Processed[0] = true;
-  for (SizeValueType k = 1; k < buffsize; ++k)
-  {
-    OffsetValueType ThisPos = m_SortPixels[k].Pos;
-    OffsetValueType PrevPos = m_SortPixels[k - 1].Pos;
-    InputPixelType  ThisPix = m_Raw[ThisPos];
-    InputPixelType  PrevPix = m_Raw[PrevPos];
-    IndexType       ThisWhere = input->ComputeIndex(ThisPos);
-    if (ThisPix != PrevPix)
-    {
-      for (OffsetValueType QPos = k - 1; QPos >= 0; --QPos)
-      {
-        OffsetValueType QLoc = m_SortPixels[QPos].Pos;
-        if (m_Raw[QLoc] != PrevPix)
-        {
-          break;
-        }
-        if ((m_Parent[QLoc] == ACTIVE) && (m_AuxData[QLoc] >= m_Lambda))
-        {
-          m_Parent[QLoc] = INACTIVE;
-          m_AuxData[QLoc] = -1;
-          // dispose auxdata[QLoc]
-        }
-      }
-    }
-    MakeSet(ThisPos);
-    if (fit->IsInside(ThisWhere))
-    {
-      // no need for neighbor bounds check
-      for (unsigned int i = 0; i < TheseDirectOffsets.size(); ++i)
-      {
-        OffsetValueType NeighInd = ThisPos + TheseDirectOffsets[i];
-        if (m_Processed[NeighInd])
-        {
-          Union(NeighInd, ThisPos);
-        }
-      }
-    }
-    else
-    {
-      for (unsigned int i = 0; i < TheseOffsets.size(); ++i)
-      {
-        if (output->GetRequestedRegion().IsInside(ThisWhere + TheseOffsets[i]))
-        {
-          OffsetValueType NeighInd = ThisPos + TheseDirectOffsets[i];
-          if (m_Processed[NeighInd])
-          {
-            Union(NeighInd, ThisPos);
-          }
-        }
-      }
-    }
-    m_Processed[ThisPos] = true;
-    progress.CompletedPixel();
-  }
-
-#endif
 
   // resolving phase
   // copy pixels back
@@ -247,12 +184,11 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
   // fill Raw - worry about iteration details later.
   // We aren't filling m_Parent, as suggested in the paper, because it
   // is an integer array. We want this to work with float types
-#ifdef PAMI
   // write the new image to Raw - note that we aren't putting the
   // result in parent
   for (pos = buffsize - 1; pos >= 0; --pos)
   {
-    OffsetValueType RPos = m_SortPixels[pos].Pos;
+    OffsetValueType RPos = m_SortPixels[pos];
     if (m_Parent[RPos] >= 0)
     {
       m_Raw[RPos] = m_Raw[m_Parent[RPos]];
@@ -265,34 +201,9 @@ AttributeMorphologyBaseImageFilter<TInputImage, TOutputImage, TAttribute, TFunct
     progress.CompletedPixel();
   }
 
-#else
-  // the version from the paper
-  for (pos = buffsize - 1; pos >= 0; --pos)
-  {
-    OffsetValueType RPos = m_SortPixels[pos].Pos;
-    if (m_Parent[RPos] < 0)
-    {
-      m_Parent[RPos] = (OffsetValueType)m_Raw[RPos];
-    }
-    else
-    {
-      m_Parent[RPos] = m_Parent[m_Parent[RPos]];
-    }
-    progress.CompletedPixel();
-  }
-  for (pos = 0; pos < buffsize; ++pos, ++ORegIt)
-  {
-    ORegIt.Set(static_cast<OutputPixelType>(m_Parent[pos]));
-    progress.CompletedPixel();
-  }
-#endif
-
   delete[] m_Raw;
   delete[] m_SortPixels;
   delete[] m_Parent;
-#ifndef PAMI
-  delete[] m_Processed;
-#endif
   delete[] m_AuxData;
 }
 
